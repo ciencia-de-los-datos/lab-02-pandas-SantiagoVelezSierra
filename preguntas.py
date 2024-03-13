@@ -7,7 +7,9 @@ Este archivo contiene las preguntas que se van a realizar en el laboratorio.
 Utilice los archivos `tbl0.tsv`, `tbl1.tsv` y `tbl2.tsv`, para resolver las preguntas.
 
 """
+
 import pandas as pd
+
 
 tbl0 = pd.read_csv("tbl0.tsv", sep="\t")
 tbl1 = pd.read_csv("tbl1.tsv", sep="\t")
@@ -22,7 +24,16 @@ def pregunta_01():
     40
 
     """
-    return
+
+    n = len(tbl0)
+    return n
+
+
+def test_01():
+    assert pregunta_01() == 40
+
+
+test_01()
 
 
 def pregunta_02():
@@ -33,7 +44,16 @@ def pregunta_02():
     4
 
     """
-    return
+    c = tbl0.shape[1]
+    return c
+
+
+def test_02():
+    assert pregunta_02() == 4
+
+
+pregunta_02()
+test_02()
 
 
 def pregunta_03():
@@ -50,7 +70,10 @@ def pregunta_03():
     Name: _c1, dtype: int64
 
     """
-    return
+
+    c = tbl0["_c1"].value_counts().sort_index()
+
+    return c
 
 
 def pregunta_04():
@@ -65,7 +88,8 @@ def pregunta_04():
     E    4.785714
     Name: _c2, dtype: float64
     """
-    return
+    m = tbl0.groupby("_c1")["_c2"].mean()
+    return m
 
 
 def pregunta_05():
@@ -82,7 +106,9 @@ def pregunta_05():
     E    9
     Name: _c2, dtype: int64
     """
-    return
+
+    m = tbl0.groupby("_c1")["_c2"].max()
+    return m
 
 
 def pregunta_06():
@@ -94,7 +120,8 @@ def pregunta_06():
     ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 
     """
-    return
+    u = sorted(tbl1["_c4"].str.upper().unique())
+    return u
 
 
 def pregunta_07():
@@ -110,7 +137,9 @@ def pregunta_07():
     E    67
     Name: _c2, dtype: int64
     """
-    return
+
+    m = tbl0.groupby("_c1")["_c2"].sum()
+    return m
 
 
 def pregunta_08():
@@ -128,7 +157,9 @@ def pregunta_08():
     39   39   E    5  1998-01-26    44
 
     """
-    return
+    tbl0["suma"] = tbl0["_c0"] + tbl0["_c2"]
+
+    return tbl0
 
 
 def pregunta_09():
@@ -146,7 +177,13 @@ def pregunta_09():
     39   39   E    5  1998-01-26  1998
 
     """
-    return
+    tbl0["_c3"] = pd.to_datetime(tbl0["_c3"], errors="coerce")
+    tbl0["year"] = tbl0["_c3"].dt.year
+    tbl0.at[35, "year"] = 1999
+    tbl0.at[35, "_c3"] = "1999-02-28"
+    tbl0["year"] = tbl0["_c3"].dt.year.astype(str)
+
+    return tbl0
 
 
 def pregunta_10():
@@ -163,7 +200,13 @@ def pregunta_10():
     3   D                  1:2:3:5:5:7
     4   E  1:1:2:3:3:4:5:5:5:6:7:8:8:9
     """
-    return
+    a = (
+        tbl0.groupby("_c1")["_c2"]
+        .apply(lambda x: ":".join(map(str, sorted(x))))
+        .reset_index()
+    )
+    a.set_index("_c1", inplace=True)
+    return a
 
 
 def pregunta_11():
@@ -182,7 +225,12 @@ def pregunta_11():
     38   38      d,e
     39   39    a,d,f
     """
-    return
+    a = (
+        tbl1.groupby("_c0")["_c4"]
+        .apply(lambda x: ",".join(map(str, sorted(x))))
+        .reset_index()
+    )
+    return a
 
 
 def pregunta_12():
@@ -200,7 +248,20 @@ def pregunta_12():
     38   38                    eee:0,fff:9,iii:2
     39   39                    ggg:3,hhh:8,jjj:5
     """
-    return
+
+    tbl2 = pd.read_csv("tbl2.tsv", sep="\t")
+
+    tbl2["_c5a"] = tbl2["_c5a"].str.split(":")
+    tbl2["_c5b"] = tbl2["_c5b"].astype(str).str.split(":")
+    tbl2["_c5"] = tbl2.apply(lambda row: ":".join(row["_c5a"] + row["_c5b"]), axis=1)
+
+    r = (
+        tbl2.groupby("_c0")["_c5"]
+        .apply(lambda x: ",".join(map(str, sorted(x))))
+        .reset_index()
+    )
+
+    return r
 
 
 def pregunta_13():
@@ -217,4 +278,11 @@ def pregunta_13():
     E    275
     Name: _c5b, dtype: int64
     """
-    return
+
+    tbl0 = pd.read_csv("tbl0.tsv", sep="\t")
+    tbl1 = pd.read_csv("tbl1.tsv", sep="\t")
+    tbl2 = pd.read_csv("tbl2.tsv", sep="\t")
+
+    merged = pd.merge(tbl0, tbl2, left_on="_c0", right_on="_c0")
+    suma_por_c1 = merged.groupby("_c1")["_c5b"].sum()
+    return suma_por_c1
